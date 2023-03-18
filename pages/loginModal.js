@@ -83,6 +83,7 @@ const LoginModal = () => {
             document.body.style.overflow = 'visible';
         }
 
+        
         return () => {
             document.body.style.overflow = 'visible';
         };
