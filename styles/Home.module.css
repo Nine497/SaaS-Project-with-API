@@ -87,8 +87,8 @@
 
 .boxleft {
   padding-left: 100px;
-  padding-top: 240px;
-  padding-bottom: 280px;
+  padding-top: 100px;
+  padding-bottom: 230px;
   width: 40%;
   height: auto;
   backdrop-filter: blur(8px);
@@ -228,17 +228,6 @@
     font-size: 16px;
     line-height: 1.5;
     padding: 10px;
-  }
-
-  .boxleft {
-    padding-left: 20px;
-    padding-top: 60px;
-    width: 80%;
-    height: auto;
-    backdrop-filter: blur(8px);
-    background-color: transparent;
-    padding-bottom: 120px;
-
   }
 
   .Leadtext {

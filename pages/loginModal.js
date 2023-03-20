@@ -6,18 +6,29 @@ import { BiLogIn } from 'react-icons/bi';
 import { GrUserAdmin } from 'react-icons/gr'
 import strapi, { login, getCurrentUser } from '../pages/api/Strapi';
 import { useSnackbar } from 'notistack';
+import ForgotPasswordForm from '../pages/ForgotPasswordForm';
 
-const LoginModal = () => {
-    const [isOpen, setIsOpen] = useState(false);
+const LoginModal = ({ handleClose }) => {
+    const [isOpen, setModalIsOpen] = useState(false);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState(null);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const { enqueueSnackbar } = useSnackbar();
-    const handleOpen = () => setIsOpen(true);
-    const handleClose = () => setIsOpen(false);
+    const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
+    const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+    const handleOpen = () => setModalIsOpen(true);
+    const handleCloseModal = () => setModalIsOpen(false);
     const handleFormClick = (e) => e.stopPropagation();
 
+    const handleForgotPasswordClick = () => {
+        setForgotPasswordOpen(true);
+        handleCloseModal();
+    };
+
+    const handleBackClick = () => {
+        setForgotPasswordOpen(false);
+        setModalIsOpen(true);
+    };
 
     const IndicatorSeparator = () => {
         return (
@@ -36,13 +47,13 @@ const LoginModal = () => {
 
             localStorage.setItem('token', token);
             setIsLoggedIn(true);
-            setIsOpen(false);
+            setModalIsOpen(false);
             setUsername('');
             setPassword('');
             // Call getCurrentUser with the token to get the current user
             const user = await getCurrentUser(token);
             setUsername(user.username);
-            enqueueSnackbar(`${user.username} เข้าสู่ระบบ!`, {
+            enqueueSnackbar(`${user.username} เข้าสู่ระบบ`, {
                 variant: 'success', style: {
                     fontFamily: 'Lato, "Noto Sans Thai", sans-serif',
                     fontSize: '18px'
@@ -61,40 +72,53 @@ const LoginModal = () => {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('token');
-        setIsLoggedIn(false);
-        setUsername('');
-        enqueueSnackbar('ออกจากระบบ เรียบร้อยแล้ว', {
-            variant: 'success',
-            style: {
+        enqueueSnackbar('ต้องการที่จะออกจากระบบ?', {
+            variant: 'info', style: {
                 fontFamily: 'Lato, "Noto Sans Thai", sans-serif',
                 fontSize: '18px'
-            }
+            },
+            persist: true,
+            action: (key) => (
+                <>
+                    <button className={styles.notistackbtn} onClick={() => {
+                        localStorage.removeItem('token');
+                        setIsLoggedIn(false);
+                        setUsername('');
+                        enqueueSnackbar('ออกจากระบบเรียบร้อยแล้ว', {
+                            variant: 'success', style: {
+                                fontFamily: 'Lato, "Noto Sans Thai", sans-serif',
+                                fontSize: '18px'
+                            },
+                        });
+                        closeSnackbar(key);
+                    }}>ยืนยัน</button>
+                    <button className={styles.notistackbtn} onClick={() => closeSnackbar(key)}>ยกเลิก</button>
+                </>
+            ),
+
         });
     };
 
 
-
-
     useEffect(() => {
-        if (isOpen) {
+        if (isOpen || forgotPasswordOpen) {
             document.body.style.overflow = 'hidden';
         } else {
             document.body.style.overflow = 'visible';
         }
 
-        
         return () => {
             document.body.style.overflow = 'visible';
         };
-    }, [isOpen]);
+    }, [isOpen, forgotPasswordOpen]);
+
 
     return (
         <div className={styles.font}>
             {isLoggedIn ? (
                 <div className={styles.dropdown}>
                     <Select
-                        options={[{ value: 'profile', label: 'Profile' }, { value: 'settings', label: 'Settings' }, { value: 'logout', label: 'Log out' }]}
+                        options={[{ value: 'edit', label: 'Edit Contents' }, { value: 'settings', label: 'Settings' }, { value: 'logout', label: 'Log out' }]}
                         onChange={(selectedOption) => {
                             if (selectedOption.value === 'logout') {
                                 handleLogout();
@@ -114,31 +138,35 @@ const LoginModal = () => {
                     Login
                 </button>
             )}
-            {isOpen && (
-                <div className={styles.modalBackdrop} onClick={handleClose}>
+            {isOpen ? (
+                <div className={styles.modalBackdrop} onClick={handleCloseModal}>
                     <div className={styles.modal} onClick={handleFormClick}>
                         <h2 style={{ display: 'flex', alignItems: 'center', fontSize: '24px' }}>เข้าสู่ระบบ <BiLogIn style={{ marginLeft: '10px' }} /></h2>
                         <hr style={{ marginTop: '10px', marginBottom: '5px', border: '0', borderTop: '1px solid #ccc' }} />
                         <form className={styles.formLog} onSubmit={handleSubmit}>
                             {error && <p className={styles.error}>{error}</p>}
                             <label>
-                                E-mail:
+                                E-mail :
                                 <input type="email" className={styles.inputField} value={username} onChange={(e) => setUsername(e.target.value)} />
                             </label>
                             <label>
-                                Password:
+                                Password :
                                 <input type="password" className={styles.inputField} value={password} onChange={(e) => setPassword(e.target.value)} />
                             </label>
-                            <button type="submit" className={styles.submitBtn}>Submit</button>
-                            <button className={styles.closeBtn} onClick={handleClose}>
+                            <button type="submit" className={styles.submitBtn}>ยืนยัน</button>
+                            <button className={styles.closeBtn} onClick={handleCloseModal}>
                                 <GrClose />
                             </button>
+                            <a className={styles.forgotpassbtn} onClick={handleForgotPasswordClick}>ลืมรหัสผ่าน ?</a>
                         </form>
                     </div>
                 </div>
+            ) : (
+                forgotPasswordOpen ?
+                    <ForgotPasswordForm handleClose={handleClose} handleBackClick={handleBackClick} forgotPasswordOpen={forgotPasswordOpen} isOpen={isOpen} />
+                    : null
             )}
         </div>
     );
-};
-
+}
 export default LoginModal;
