@@ -25,7 +25,7 @@ export default function SaaSPage() {
                 <>
                     {dataArr.map((OneCardData) => {
                         return (
-                            <div style={{ textAlign: "center", padding:" 20px 20%" }} key={OneCardData.id}>
+                            <div style={{ textAlign: "center", padding: " 20px 20%" }} key={OneCardData.id}>
                                 <img
                                     src={`http://localhost:1337${OneCardData.img.data.attributes.url}`}
                                     alt={OneCardData.title}

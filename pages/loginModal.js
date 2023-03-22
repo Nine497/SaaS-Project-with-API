@@ -42,9 +42,9 @@ const LoginModal = ({ handleClose }) => {
             setPassword('');
             // Call getCurrentUser with the token to get the current user
             const user = await getCurrentUser(token);
-            sessionStorage.setItem('username', user.username);
+            sessionStorage.setItem('session_username', user.username);
             setUsername(user.username);
-            enqueueSnackbar(`${user.username} เข้าสู่ระบบ`, {
+            enqueueSnackbar(`${username} เข้าสู่ระบบ`, {
                 variant: 'success', style: {
                     fontFamily: 'Lato, "Noto Sans Thai", sans-serif',
                     fontSize: '18px'
@@ -62,23 +62,7 @@ const LoginModal = ({ handleClose }) => {
         }
     };
 
-    const checkSession = () => {
-        if (!sessionStorage.username || !localStorage.token) {
-            localStorage.removeItem('token');
-            setIsLoggedIn(false);
-            enqueueSnackbar('You need to log in first.', {
-                variant: 'error',
-                action: () => (
-                    <Button color="inherit" onClick={() => push('/')}>
-                        Go to index
-                    </Button>
-                ),
-            });
-        }
-    };
-
     useEffect(() => {
-        checkSession();
         if (isOpen || forgotPasswordOpen) {
             document.body.style.overflow = 'hidden';
         } else {
@@ -93,7 +77,7 @@ const LoginModal = ({ handleClose }) => {
     return (
         <div className={styles.font}>
             {isLoggedIn ? (
-                <Dropdown />
+                <Dropdown setIsLoggedIn={setIsLoggedIn} />
             ) : (
                 <button className={styles.loginBtn} onClick={handleOpen}>
                     Login

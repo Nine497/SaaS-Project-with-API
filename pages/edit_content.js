@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Dropdown from '../pages/userMenu';
 import { styled } from '@mui/material/styles';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -9,9 +8,17 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
-import styles from '@/styles/table.module.css';
 import { useSnackbar } from 'notistack';
 import { Button } from '@mui/material';
+import CreateDataModal from '../pages/AddContentModal'
+import EditContentModal from '../pages/EditContentModal'
+import Modal from 'react-modal';
+import { GrUserAdmin } from 'react-icons/gr';
+import Select from 'react-select';
+import styles from '../styles/LoginModal.module.css';
+import { useRouter } from 'next/router';
+
+Modal.setAppElement('#__next');
 
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -79,27 +86,98 @@ const DeleteButton = styled(StyledButton)(({ theme }) => ({
     backgroundColor: theme.palette.error.main,
     color: theme.palette.error.contrastText,
 }));
-function App() {
+
+function App(isLoggedIn, setIsLoggedIn) {
     const [data, setData] = useState([]);
     const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+    const router = useRouter();
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-    const checkSession = () => {
-        if (!sessionStorage.username || !localStorage.token) {
-            localStorage.removeItem('token');
-            setIsLoggedIn(false);
-            enqueueSnackbar('You need to log in first.', {
-                variant: 'error',
-                action: () => (
-                    <Button color="inherit" onClick={() => push('/')}>
-                        Go to index
-                    </Button>
-                ),
-            });
-        }
+    const openCreateModal = () => {
+        setIsCreateModalOpen(true);
     };
 
+    const openEditModal = () => {
+        setIsEditModalOpen(true);
+    };
+
+
+    const handleCloseModals = () => {
+        setIsCreateModalOpen(false);
+        setIsEditModalOpen(false);
+    };
+
+    function handleEdit() {
+        router.push('/edit_content');
+    }
+
+    function handleIndex() {
+        router.push('/');
+    }
+
+    function handleLogout(isLoggedIn) {
+        enqueueSnackbar('ต้องการที่จะออกจากระบบ?', {
+            variant: 'info',
+            persist: true,
+            action: (key) => (
+                <>
+                    <button
+                        className={styles.notistackbtn}
+                        onClick={() => {
+                            sessionStorage.clear();
+                            localStorage.clear();
+                            for (let i = 0; i < cookies.length; i++) {
+                                const cookie = cookies[i];
+                                const eqPos = cookie.indexOf("=");
+                                const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+                                document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+                            }
+                            for (let key in window) {
+                                if (window.hasOwnProperty(key) && window[key] instanceof Storage) {
+                                    window[key].clear();
+                                }
+                            }
+                            setIsLoggedIn(false);
+                            enqueueSnackbar('ออกจากระบบเรียบร้อยแล้ว', {
+                                variant: 'success',
+                                style: {},
+                            });
+                            closeSnackbar(key);
+                            // Redirect to homepage with isLoggedIn=false query parameter
+                            router.push({
+                                pathname: '/',
+                                query: { isLoggedIn: false },
+                            });
+                        }}
+                    >
+                        ยืนยัน
+                    </button>
+                    <button
+                        className={styles.notistackbtn}
+                        onClick={() => closeSnackbar(key)}
+                    >
+                        ยกเลิก
+                    </button>
+                </>
+            ),
+        });
+    }
+
+    const IndicatorSeparator = () => {
+        return (
+            <div style={{ display: 'flex', alignItems: 'center', marginRight: '5px' }}>
+                <GrUserAdmin />
+                <span style={{ width: '1px', height: '12px', backgroundColor: '#ccc', marginLeft: '5px' }} />
+            </div>
+        );
+    };
+    const [session_username, setSessionUsername] = useState('');
+
     useEffect(() => {
-        checkSession();
+        const name = sessionStorage.getItem('session_username');
+        console.log('session_username:', name);
+        setSessionUsername(name);
         const token = localStorage.getItem('token');
         const fetchData = async () => {
             try {
@@ -124,9 +202,33 @@ function App() {
     return (
         <div className={styles.Container}>
             <div className={styles.TextPosition}>
-                <Dropdown />
+                <div className={styles.dropdown}>
+                    <Select
+                        options={[
+                            { value: 'edit', label: 'Edit Contents' },
+                            { value: 'index', label: 'Index' },
+                            { value: 'logout', label: 'Log out' },
+                        ]}
+                        onChange={(selectedOption) => {
+                            if (selectedOption.value === 'logout') {
+                                handleLogout(isLoggedIn);
+                            } else if (selectedOption.value === 'edit') {
+                                handleEdit(isLoggedIn, setIsLoggedIn);
+                            } else if (selectedOption.value === 'index') {
+                                handleIndex();
+                            }
+                        }}
+                        placeholder={session_username}
+                        components={{
+                            IndicatorSeparator,
+                        }}
+                        isSearchable={false}
+                    />
+                </div>
                 <h1 className={styles.Textheader}>ข้อมูลทั้งหมด</h1>
             </div>
+            <button className={styles.AddBtn} onClick={openCreateModal}>Add content</button>
+            <CreateDataModal isOpen={isCreateModalOpen} onClose={() => handleCloseModals(false)} />
             <div className={styles.TablePosition}>
                 <TableContainer component={Paper}>
                     <Table sx={{ minWidth: 300 }} aria-label="customized table">
@@ -158,7 +260,8 @@ function App() {
                                     <StyledTableCell>{new Date(item.attributes.publishedAt).toLocaleDateString()}</StyledTableCell>
                                     <StyledTableCell>
                                         <StyledTableCells>
-                                            <EditButton>Edit</EditButton>
+                                            <EditButton onClick={openEditModal}>Edit</EditButton>
+                                            <EditContentModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} />
                                             <DeleteButton>Delete</DeleteButton>
                                         </StyledTableCells>
                                     </StyledTableCell>
