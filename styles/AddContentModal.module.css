@@ -1,0 +1,102 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@800&display=swap');
+
+.header {
+    font-family: 'Noto Sans Thai', sans-serif;
+}
+
+.modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    width: 65%;
+    height: auto;
+    max-height: 95%;
+    overflow-y: auto;
+}
+
+.modal label {
+    font-family: 'Noto Sans Thai', sans-serif;
+    display: block;
+    margin-bottom: 15px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.modal input[type="text"],
+.modal textarea {
+    font-family: 'Noto Sans Thai', sans-serif;
+    width: 100%;
+    padding: 5px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+    margin-bottom: 20px;
+    font-weight: bolder;
+}
+
+.modal button[type="submit"] {
+    font-family: 'Noto Sans Thai', sans-serif;
+    padding: 7px 20px;
+    background-color: #4CAF50;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.modal button[type="submit"]:hover {
+    background-color: #3e8e41;
+}
+
+.modal button[type="button"] {
+    font-family: 'Noto Sans Thai', sans-serif;
+    padding: 7px 20px;
+    background-color: red;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    text-transform: uppercase;
+    float: right
+}
+
+.modal button[type="button"]:hover {
+    background-color: darkred;
+}
+
+.imgselected {
+    font-family: 'Noto Sans Thai', sans-serif;
+    height: 150px;
+    max-width: 100%;
+    margin-top: 10px;
+    border-radius: 10px;
+}
+
+
+.imgBox {
+    align-items: center;
+    justify-content: center;
+    padding: 5px 0px;
+}
+
+
+.imagePreview {
+    font-family: 'Noto Sans Thai', sans-serif;
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
+    align-items: center;
+}

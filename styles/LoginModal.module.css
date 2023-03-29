@@ -307,13 +307,25 @@
 }
 
 .AddBtn {
-    font-family: 'Roboto Condensed', sans-serif;
+    font-family: 'Noto Sans Thai', sans-serif;
     font-size: 20px;
     display: flex;
     padding: 10px 20px;
     float: right;
     margin-right: 6%;
     margin-bottom: 20px;
+    background-color: #4CAF50;
+    color: #fff;
+    border-radius: 5px;
+    border: none;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+.AddBtn:hover {
+    background-color: #3e8e41;
+    cursor: pointer;
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 

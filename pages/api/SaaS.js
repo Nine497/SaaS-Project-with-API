@@ -39,7 +39,7 @@ export default function SaaSDisplay() {
               {CardData.attributes.title}
             </h2>
             <p>
-              {CardData.attributes.Description}
+              {CardData.attributes.description}
             </p>
             <a onClick={() => handleClick(CardData.id)} className={styles.button}>
               <span style={{ display: 'flex', alignItems: 'center' }} >

@@ -140,6 +140,7 @@
 
 .card p {
     inset: 15rem auto 80px 30px;
+    word-wrap: break-word;
 }
 
 .card a {

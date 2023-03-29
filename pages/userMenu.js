@@ -12,8 +12,8 @@ export default function Dropdown({ isLoggedIn, setIsLoggedIn }) {
 
     useEffect(() => {
         const name = sessionStorage.getItem('session_username');
-        console.log('session_username:', name);
         setSessionUsername(name);
+        console.log('session_username:', name);
     }, []);
 
 

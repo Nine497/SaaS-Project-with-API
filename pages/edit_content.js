@@ -93,17 +93,19 @@ function App(isLoggedIn, setIsLoggedIn) {
     const router = useRouter();
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [selectedItemId, setSelectedItemId] = useState(null);
 
     const openCreateModal = () => {
         setIsCreateModalOpen(true);
     };
 
-    const openEditModal = () => {
+    const openEditModal = (itemId) => {
+        setSelectedItemId(itemId);
         setIsEditModalOpen(true);
     };
 
-
     const handleCloseModals = () => {
+        setSelectedItemId(null);
         setIsCreateModalOpen(false);
         setIsEditModalOpen(false);
     };
@@ -227,7 +229,7 @@ function App(isLoggedIn, setIsLoggedIn) {
                 </div>
                 <h1 className={styles.Textheader}>ข้อมูลทั้งหมด</h1>
             </div>
-            <button className={styles.AddBtn} onClick={openCreateModal}>Add content</button>
+            <button className={styles.AddBtn} onClick={openCreateModal}>Add content + </button>
             <CreateDataModal isOpen={isCreateModalOpen} onClose={() => handleCloseModals(false)} />
             <div className={styles.TablePosition}>
                 <TableContainer component={Paper}>
@@ -251,19 +253,20 @@ function App(isLoggedIn, setIsLoggedIn) {
                                     <StyledTableCell>
                                         <img src={`http://localhost:1337${item.attributes.img.data.attributes.url}`} width="100" height="100" />
                                     </StyledTableCell>
-                                    <StyledTableCell>{item.attributes.title}</StyledTableCell>
-                                    <StyledTableCell style={{ maxWidth: '600px', wordWrap: 'break-word' }}>
-                                        {item.attributes.Description}
+                                    <StyledTableCell style={{ maxWidth: '150px', wordWrap: 'break-word' }}>
+                                        {item.attributes.title}</StyledTableCell>
+                                    <StyledTableCell style={{ maxWidth: '300px', wordWrap: 'break-word' }}>
+                                        {item.attributes.description}
                                     </StyledTableCell>
                                     <StyledTableCell>{new Date(item.attributes.createdAt).toLocaleDateString()}</StyledTableCell>
                                     <StyledTableCell>{new Date(item.attributes.updatedAt).toLocaleDateString()}</StyledTableCell>
                                     <StyledTableCell>{new Date(item.attributes.publishedAt).toLocaleDateString()}</StyledTableCell>
                                     <StyledTableCell>
                                         <StyledTableCells>
-                                            <EditButton onClick={openEditModal}>Edit</EditButton>
-                                            <EditContentModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} />
+                                            <EditButton onClick={() => openEditModal(item.id)}>Edit</EditButton>
                                             <DeleteButton>Delete</DeleteButton>
                                         </StyledTableCells>
+                                        <EditContentModal isOpen={isEditModalOpen} onClose={handleCloseModals} itemId={selectedItemId} />
                                     </StyledTableCell>
                                 </StyledTableRow>
                             ))}

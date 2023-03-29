@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Modal from 'react-modal';
+import styles from '../styles/AddContentModal.module.css';
 
 Modal.setAppElement('#__next');
 
@@ -14,99 +15,151 @@ const AddContentModal = ({ isOpen, onClose, onSubmit }) => {
     };
 
     const [formData, setFormData] = useState({
-        image: '',
+        image: null,
         title: '',
-        description: '',
+        description: ''
     });
 
-    const handleInputChange = (event) => {
+
+    function handleImageChange(event) {
         setFormData({
             ...formData,
-            [event.target.name]: event.target.value,
+            image: event.target.files[0]
         });
-    };
+    }
 
-    const handleSubmit = async (event) => {
-        event.preventDefault();
+    function handleInputChange(event) {
+        setFormData({
+            ...formData,
+            [event.target.name]: event.target.value
+        });
+    }
+
+    async function uploadEntry(entryData) {
+        const { image, title, description } = entryData;
+        const apiUrl = 'http://localhost:1337/api';
+        const token = localStorage.getItem('token');
+
         try {
-            const token = localStorage.getItem('token');
-            const formDataToSend = new FormData();
-            formDataToSend.append('files.image', formData.image);
-            formDataToSend.append('data.title', formData.title);
-            formDataToSend.append('data.description', formData.description);
-            const options = {
+            // Upload image
+            const formData = new FormData();
+            formData.append('files', image);
+            const uploadConfig = {
                 method: 'POST',
-                body: formDataToSend,
                 headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                    Authorization: `Bearer ${token}`,
+                },
+                body: formData,
             };
-            const response = await fetch('http://localhost:1337/api/apps', options);
-            if (response.ok) {
-                onClose();
-            } else {
-                console.error(`HTTP error: ${response.status}`);
-            }
+            const uploadResponse = await fetch(`${apiUrl}/upload`, uploadConfig);
+            const uploadedFile = await uploadResponse.json();
+            // Create entry with image file and text
+            const entryData = {
+                data: {
+                    title,
+                    description,
+                    img: {
+                        id: uploadedFile[0].id,
+                    },
+                },
+            };
+
+            const createConfig = {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(entryData),
+            };
+            const createResponse = await fetch(`${apiUrl}/apps`, createConfig);
+            const createdEntry = await createResponse.json();
+            console.log('Entry created:', createdEntry);
+            window.location.reload();
+            return createdEntry;
         } catch (error) {
-            console.error(error);
+            console.error('Error uploading file:', error);
+            throw new Error(error);
         }
-    };
+    }
+
+
+
+
+
+
+    function handleSubmit(event) {
+        event.preventDefault();
+        uploadEntry(formData);
+    }
+
+
+
+
+
+
+
+
+
+
 
 
     return (
         <Modal
             isOpen={isOpen}
             onRequestClose={onClose}
-            style={{
-                overlay: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                    zIndex: '1000',
-                },
-                content: {
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    width: '500px',
-                    height: '22rem',
-                    borderRadius: '10px',
-                    boxShadow: '0 0 10px rgba(0, 0, 0, 0.25)',
-                    padding: '20px',
-                },
-            }}
+            className={styles.modal}
         >
-            <h2 style={{ marginBottom: '20px', textAlign: 'center' }}>Add Content</h2>
+            <h2 className={styles.header}>Add Content</h2><hr />
             <form onSubmit={handleSubmit}>
-                <div style={{ marginBottom: '10px' }}>
-                    <label style={{ display: 'block' }}>
+                <div className={styles.imgBox}>
+                    <label>
+                        Image :
+                        <input
+                            type="file"
+                            name="image"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                        />
+                        <div className={styles.imagePreview}>
+                            {formData.image && (
+                                <>
+                                    <img
+                                        src={URL.createObjectURL(formData.image)}
+                                        alt="selected"
+                                        className={styles.imgselected}
+                                    />
+                                </>
+                            )}
+                            {!formData.image && (
+                                <div style={{ marginTop: '5px' }}>Upload Image here</div>
+                            )}
+                        </div>
+                    </label>
+                </div>
+                <div>
+                    <label>
                         Title:
                         <input
                             type="text"
                             name="title"
-                            style={{ width: '100%', padding: '5px' }}
+                            value={formData.title}
+                            onChange={handleInputChange} // add onChange handler
                         />
                     </label>
                 </div>
-                <div style={{ marginBottom: '10px' }}>
-                    <label style={{ display: 'block' }}>
+                <div>
+                    <label>
                         Description:
                         <textarea
                             name="description"
-                            style={{ width: '100%', padding: '5px', minHeight: '100px' }}
+                            value={formData.description}
+                            onChange={handleInputChange} // add onChange handler
                         />
                     </label>
                 </div>
                 <button
                     type="submit"
-                    style={{
-                        backgroundColor: hovered ? 'red' : 'blue',
-                        color: 'white',
-                        border: 'none',
-                        padding: '10px 20px',
-                        borderRadius: '5px',
-                        cursor: 'pointer',
-                        transition: 'background-color 0.3s ease',
-                    }}
                     onMouseEnter={handleMouseEnter}
                     onMouseLeave={handleMouseLeave}
                 >
@@ -115,15 +168,6 @@ const AddContentModal = ({ isOpen, onClose, onSubmit }) => {
                 <button
                     type="button"
                     onClick={onClose}
-                    style={{
-                        backgroundColor: 'gray',
-                        color: 'white',
-                        border: 'none',
-                        padding: '10px 20px',
-                        borderRadius: '5px',
-                        cursor: 'pointer',
-                        marginTop: '10px',
-                    }}
                 >
                     Close
                 </button>
