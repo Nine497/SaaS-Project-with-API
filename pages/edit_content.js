@@ -8,15 +8,14 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
-import { useSnackbar } from 'notistack';
+import { SnackbarProvider } from 'notistack';
 import { Button } from '@mui/material';
 import CreateDataModal from '../pages/AddContentModal'
 import EditContentModal from '../pages/EditContentModal'
 import Modal from 'react-modal';
-import { GrUserAdmin } from 'react-icons/gr';
-import Select from 'react-select';
 import styles from '../styles/LoginModal.module.css';
 import { useRouter } from 'next/router';
+import LoginModal from '../pages/loginModal';
 
 Modal.setAppElement('#__next');
 
@@ -87,9 +86,8 @@ const DeleteButton = styled(StyledButton)(({ theme }) => ({
     color: theme.palette.error.contrastText,
 }));
 
-function App(isLoggedIn, setIsLoggedIn) {
+function App() {
     const [data, setData] = useState([]);
-    const { enqueueSnackbar, closeSnackbar } = useSnackbar();
     const router = useRouter();
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -110,76 +108,8 @@ function App(isLoggedIn, setIsLoggedIn) {
         setIsEditModalOpen(false);
     };
 
-    function handleEdit() {
-        router.push('/edit_content');
-    }
-
-    function handleIndex() {
-        router.push('/');
-    }
-
-    function handleLogout(isLoggedIn) {
-        enqueueSnackbar('ต้องการที่จะออกจากระบบ?', {
-            variant: 'info',
-            persist: true,
-            action: (key) => (
-                <>
-                    <button
-                        className={styles.notistackbtn}
-                        onClick={() => {
-                            sessionStorage.clear();
-                            localStorage.clear();
-                            for (let i = 0; i < cookies.length; i++) {
-                                const cookie = cookies[i];
-                                const eqPos = cookie.indexOf("=");
-                                const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-                                document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
-                            }
-                            for (let key in window) {
-                                if (window.hasOwnProperty(key) && window[key] instanceof Storage) {
-                                    window[key].clear();
-                                }
-                            }
-                            setIsLoggedIn(false);
-                            enqueueSnackbar('ออกจากระบบเรียบร้อยแล้ว', {
-                                variant: 'success',
-                                style: {},
-                            });
-                            closeSnackbar(key);
-                            // Redirect to homepage with isLoggedIn=false query parameter
-                            router.push({
-                                pathname: '/',
-                                query: { isLoggedIn: false },
-                            });
-                        }}
-                    >
-                        ยืนยัน
-                    </button>
-                    <button
-                        className={styles.notistackbtn}
-                        onClick={() => closeSnackbar(key)}
-                    >
-                        ยกเลิก
-                    </button>
-                </>
-            ),
-        });
-    }
-
-    const IndicatorSeparator = () => {
-        return (
-            <div style={{ display: 'flex', alignItems: 'center', marginRight: '5px' }}>
-                <GrUserAdmin />
-                <span style={{ width: '1px', height: '12px', backgroundColor: '#ccc', marginLeft: '5px' }} />
-            </div>
-        );
-    };
-    const [session_username, setSessionUsername] = useState('');
 
     useEffect(() => {
-        const name = sessionStorage.getItem('session_username');
-        console.log('session_username:', name);
-        setSessionUsername(name);
         const token = localStorage.getItem('token');
         const fetchData = async () => {
             try {
@@ -202,79 +132,59 @@ function App(isLoggedIn, setIsLoggedIn) {
     }, []);
 
     return (
-        <div className={styles.Container}>
-            <div className={styles.TextPosition}>
-                <div className={styles.dropdown}>
-                    <Select
-                        options={[
-                            { value: 'edit', label: 'Edit Contents' },
-                            { value: 'index', label: 'Index' },
-                            { value: 'logout', label: 'Log out' },
-                        ]}
-                        onChange={(selectedOption) => {
-                            if (selectedOption.value === 'logout') {
-                                handleLogout(isLoggedIn);
-                            } else if (selectedOption.value === 'edit') {
-                                handleEdit(isLoggedIn, setIsLoggedIn);
-                            } else if (selectedOption.value === 'index') {
-                                handleIndex();
-                            }
-                        }}
-                        placeholder={session_username}
-                        components={{
-                            IndicatorSeparator,
-                        }}
-                        isSearchable={false}
-                    />
-                </div>
-                <h1 className={styles.Textheader}>ข้อมูลทั้งหมด</h1>
-            </div>
-            <button className={styles.AddBtn} onClick={openCreateModal}>Add content + </button>
-            <CreateDataModal isOpen={isCreateModalOpen} onClose={() => handleCloseModals(false)} />
-            <div className={styles.TablePosition}>
-                <TableContainer component={Paper}>
-                    <Table sx={{ minWidth: 300 }} aria-label="customized table">
-                        <TableHead>
-                            <TableRow>
-                                <StyledTableCell>ID</StyledTableCell>
-                                <StyledTableCell>img</StyledTableCell>
-                                <StyledTableCell>Title</StyledTableCell>
-                                <StyledTableCell>Description</StyledTableCell>
-                                <StyledTableCell>Created At</StyledTableCell>
-                                <StyledTableCell>Updated At</StyledTableCell>
-                                <StyledTableCell>Published At</StyledTableCell>
-                                <StyledTableCell>Edit</StyledTableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {data.map((item) => (
-                                <StyledTableRow key={item.id}>
-                                    <StyledTableCell>{item.id}</StyledTableCell>
-                                    <StyledTableCell>
-                                        <img src={`http://localhost:1337${item.attributes.img.data.attributes.url}`} width="100" height="100" />
-                                    </StyledTableCell>
-                                    <StyledTableCell style={{ maxWidth: '150px', wordWrap: 'break-word' }}>
-                                        {item.attributes.title}</StyledTableCell>
-                                    <StyledTableCell style={{ maxWidth: '300px', wordWrap: 'break-word' }}>
-                                        {item.attributes.description}
-                                    </StyledTableCell>
-                                    <StyledTableCell>{new Date(item.attributes.createdAt).toLocaleDateString()}</StyledTableCell>
-                                    <StyledTableCell>{new Date(item.attributes.updatedAt).toLocaleDateString()}</StyledTableCell>
-                                    <StyledTableCell>{new Date(item.attributes.publishedAt).toLocaleDateString()}</StyledTableCell>
-                                    <StyledTableCell>
-                                        <StyledTableCells>
-                                            <EditButton onClick={() => openEditModal(item.id)}>Edit</EditButton>
-                                            <DeleteButton>Delete</DeleteButton>
-                                        </StyledTableCells>
-                                        <EditContentModal isOpen={isEditModalOpen} onClose={handleCloseModals} itemId={selectedItemId} />
-                                    </StyledTableCell>
-                                </StyledTableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-            </div>
-        </div>
+        <>
+            <SnackbarProvider maxSnack={3}>
+                <div className={styles.Container}>
+                    <LoginModal />
+                    <h1 className={styles.Textheader}>ข้อมูลทั้งหมด</h1>
+                    <button className={styles.AddBtn} onClick={openCreateModal}>Add content + </button>
+                    <CreateDataModal isOpen={isCreateModalOpen} onClose={() => handleCloseModals(false)} />
+                    <div className={styles.TablePosition}>
+                        <TableContainer component={Paper}>
+                            <Table sx={{ minWidth: 300 }} aria-label="customized table">
+                                <TableHead>
+                                    <TableRow>
+                                        <StyledTableCell>ID</StyledTableCell>
+                                        <StyledTableCell>img</StyledTableCell>
+                                        <StyledTableCell>Title</StyledTableCell>
+                                        <StyledTableCell>Description</StyledTableCell>
+                                        <StyledTableCell>Created At</StyledTableCell>
+                                        <StyledTableCell>Updated At</StyledTableCell>
+                                        <StyledTableCell>Published At</StyledTableCell>
+                                        <StyledTableCell>Edit</StyledTableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {data.map((item) => (
+                                        <StyledTableRow key={item.id}>
+                                            <StyledTableCell>{item.id}</StyledTableCell>
+                                            <StyledTableCell>
+                                                <img src={`http://localhost:1337${item.attributes.img.data.attributes.url}`} width="100" height="100" />
+                                            </StyledTableCell>
+                                            <StyledTableCell style={{ maxWidth: '150px', wordWrap: 'break-word' }}>
+                                                {item.attributes.title}</StyledTableCell>
+                                            <StyledTableCell style={{ maxWidth: '300px', wordWrap: 'break-word' }}>
+                                                {item.attributes.description}
+                                            </StyledTableCell>
+                                            <StyledTableCell>{new Date(item.attributes.createdAt).toLocaleDateString()}</StyledTableCell>
+                                            <StyledTableCell>{new Date(item.attributes.updatedAt).toLocaleDateString()}</StyledTableCell>
+                                            <StyledTableCell>{new Date(item.attributes.publishedAt).toLocaleDateString()}</StyledTableCell>
+                                            <StyledTableCell>
+                                                <StyledTableCells>
+                                                    <EditButton onClick={() => openEditModal(item.id)}>Edit</EditButton>
+                                                    <DeleteButton>Delete</DeleteButton>
+                                                </StyledTableCells>
+                                                <EditContentModal isOpen={isEditModalOpen} onClose={handleCloseModals} itemId={selectedItemId} />
+                                            </StyledTableCell>
+                                        </StyledTableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    </div>
+                </div >
+            </SnackbarProvider>
+        </>
     );
 }
 

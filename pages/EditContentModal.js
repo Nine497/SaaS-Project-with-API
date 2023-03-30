@@ -1,13 +1,15 @@
 import Modal from 'react-modal';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import styles from '../styles/table.module.css';
+import styles from '../styles/EditContentModal.module.css';
 import Strapi from 'strapi-sdk-javascript';
+import { SyncLoader } from 'react-spinners';
 
 Modal.setAppElement('#__next');
 
 const EditContentModal = ({ isOpen, onClose, onSubmit, itemId }) => {
     const [itemData, setItemData] = useState(null);
+    const [isDataLoading, setIsDataLoading] = useState(true);
     const [formData, setFormData] = useState({
         image: itemData?.image || '',
         title: itemData?.title || '',
@@ -41,51 +43,102 @@ const EditContentModal = ({ isOpen, onClose, onSubmit, itemId }) => {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
+        const apiUrl = 'http://localhost:1337/api';
+        const token = localStorage.getItem('token');
+        const { image, title, description } = formData;
         try {
-            const token = localStorage.getItem('token');
-            const formDataToSend = new FormData();
-            if (formData.image) {
-                formDataToSend.append('files.image', formData.image, formData.image.name);
-                const responseIMG = await axios({
+            // Upload new image
+            let imageUploaded = false;
+            let imageId = itemData.data.attributes.img.data.id;
+            let formDataToSend = new FormData();
+            if (image) {
+                const formData = new FormData();
+                formData.append('files', image);
+                const uploadConfig = {
                     method: 'POST',
-                    url: 'http://localhost:1337'
-                })
-            }
-            if (!formData.title && !formData.description) {
-                throw new Error('Please provide either a title or a description');
-            }
-            if (formData.title) {
-                formDataToSend.append('data.title', formData.title);
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: formData,
+                };
+                const response = await fetch(`${apiUrl}/upload`, uploadConfig);
+                const data = await response.json();
+                formDataToSend.append('data.image', data[0].id);
+                imageUploaded = true;
             } else {
-                formDataToSend.append('data.title', itemData.data.attributes.title);
-            }
-            if (formData.description) {
-                formDataToSend.append('data.description', formData.description);
-            } else {
-                formDataToSend.append('data.description', itemData.data.attributes.Description);
+                formDataToSend.append('data.image', imageId);
             }
 
-            const response = await strapi.updateEntry('collectionType', itemId, {
-                title: formDataToSend.get('data.title'),
-                Description: formDataToSend.get('data.description'),
-                image: formDataToSend.get('files.image'),
-            }, {
+            const { data: currentItemData } = await fetch(`${apiUrl}/apps/${itemId}?populate=*`, {
+                method: 'GET',
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
-            });
+            }).then(response => response.json());
 
-            if (response.status === 200) {
+            const currentTitle = currentItemData.attributes.description;
+            const currentDescription = currentItemData.attributes.description;
+
+            if (formData.title && formData.title !== currentTitle) {
+                formDataToSend.append('data.title', formData.title);
+            } else {
+                formDataToSend.append('data.title', currentTitle);
+            }
+
+            if (formData.description && formData.description !== currentDescription) {
+                formDataToSend.append('data.description', formData.description);
+            } else {
+                formDataToSend.append('data.description', currentDescription);
+            }
+
+            const entryData = {
+                data: {
+                    title: formDataToSend.get('data.title'),
+                    description: formDataToSend.get('data.description'),
+                    img: {
+                        id: formDataToSend.get('data.image'),
+                    },
+                },
+            };
+
+            const updateConfig = {
+                method: 'PUT',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(entryData),
+            };
+
+            const response = await fetch(`${apiUrl}/apps/${itemId}`, updateConfig);
+            const updatedItemData = await response.json();
+            console.log(updatedItemData);
+
+            if (updatedItemData) {
                 console.log('Success');
                 onClose();
-                location.reload();
-            } else {
-                console.error(`HTTP error: ${response.status}`);
+                if (imageUploaded && currentItemData.image) {
+                    await fetch(`${apiUrl}/apps/${itemId}`, {
+                        method: 'PUT',
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                        body: JSON.stringify({ image: null }),
+                    });
+                    await fetch(`${apiUrl}/upload/files/${currentItemData.image.id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    });
+                }
             }
         } catch (error) {
             console.error('Error:', error.message);
         }
     };
+
+
 
 
 
@@ -102,16 +155,20 @@ const EditContentModal = ({ isOpen, onClose, onSubmit, itemId }) => {
             const data = response.data;
             setItemData(data);
             setHasFetchedItemData(true);
-            console.log(itemData);
         } catch (error) {
             console.error(error);
+        } finally {
+            setTimeout(() => {
+                setIsDataLoading(false);
+            }, 500);
         }
     };
 
 
+
     useEffect(() => {
         if (isOpen && itemId && !hasFetchedItemData) {
-            console.log(itemId);
+            setIsDataLoading(true);
             fetchItemData();
         }
     }, [isOpen, itemId, hasFetchedItemData]);
@@ -133,120 +190,90 @@ const EditContentModal = ({ isOpen, onClose, onSubmit, itemId }) => {
         <Modal
             isOpen={isOpen}
             onRequestClose={onClose}
-            style={{
-                overlay: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                    zIndex: '1000',
-                },
-                content: {
-                    fontFamily: 'Noto Sans Thai, sans-serif',
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    width: 'auto',
-                    height: '90vh',
-                    borderRadius: '10px',
-                    boxShadow: '0 0 10px rgba(0, 0, 0, 0.25)',
-                    padding: '20px',
-                    backgroundColor: '#f1f1f1', // new background color
-                },
-            }}
+            className={styles.modal}
+            overlayClassName={styles.overlay}
         >
-            <h2 style={{ marginBottom: '20px', textAlign: 'center' }}>Edit Content</h2>
-            <hr />
-            <form onSubmit={handleSubmit}>
-                <div style={{ marginBottom: '10px' }}>
-                    <label style={{
-                        display: 'block', fontFamily: 'Noto Sans Thai, sans-serif',
-                    }}>
-                        Image:
-                        <input
-                            type="file"
-                            name="image"
-                            accept="image/*"
-                            style={{
-                                width: '100%', padding: '5px', fontFamily: 'Noto Sans Thai, sans-serif'
-                            }}
-                            onChange={handleImageChange} // add onChange handler for image
-                        />
-                        {formData.image
-                            ? <img src={URL.createObjectURL(formData.image)} alt="selected" style={{ width: '100%', marginTop: '5px' }} />
-                            : itemData?.data?.attributes?.img?.data?.attributes?.url
-                                ? <img src={`http://localhost:1337${itemData.data.attributes.img.data.attributes.url}`} alt="default" style={{ width: '100%', marginTop: '5px' }} />
-                                : <div>No image available</div>
-                        } {/* display the selected image or the default image */}
-                    </label>
-                </div>
-                <div style={{ marginBottom: '10px' }}>
-                    <label style={{ display: 'block', fontFamily: 'Noto Sans Thai, sans-serif' }}>
-                        Title:
-                        {itemData && (
+            <>
+                <h2 className={styles.header}>Edit Content</h2>
+                <hr />
+                <form onSubmit={handleSubmit}>
+                    <div className={styles.imgBox}>
+                        <label>
+                            Image:
                             <input
-                                type="text"
-                                name="title"
-                                style={{ width: '100%', padding: '5px', fontFamily: 'Noto Sans Thai, sans-serif', fontSize: '18px' }}
-                                value={formData.title || itemData.data.attributes.title} // add value attribute
-                                onChange={handleInputChange} // add onChange handler
+                                type="file"
+                                name="image"
+                                accept="image/*"
+                                onChange={handleImageChange} // add onChange handler for image
                             />
-                        )}
-                    </label>
-                </div>
-                <div style={{ marginBottom: '10px' }}>
-                    <label style={{ display: 'block', fontFamily: 'Noto Sans Thai, sans-serif' }}>
-                        Description:
-                        {itemData && (
-                            <textarea
-                                name="description"
-                                style={{ width: '100%', padding: '5px', minHeight: '100px', fontFamily: 'Noto Sans Thai, sans-serif', fontSize: '13px' }}
-                                value={formData.description || itemData.data.attributes.description} // add value attribute
-                                onChange={handleInputChange} // add onChange handler
-                            />
-                        )}
-                    </label>
-                </div>
-                <div style={{
-                    display: 'flex',
-                    justifyContent: 'flex-end',
-                }}>
-                    <button
-                        type="submit"
-                        style={{
-                            backgroundColor: '#ff6f61',
-                            color: 'white',
-                            border: 'none',
-                            padding: '10px 20px',
-                            borderRadius: '5px',
-                            cursor: 'pointer',
-                            transition: 'background-color 0.3s ease',
-                            fontFamily: 'Noto Sans Thai, sans-serif',
-                            position: 'relative',
-                            overflow: 'hidden',
-                            marginRight: '30px'
-                        }}
-                        onMouseEnter={() => setHovered(true)}
-                        onMouseLeave={() => setHovered(false)}
-                    >Save Changes
-                    </button>
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        style={{
-                            backgroundColor: 'gray',
-                            color: 'white',
-                            border: 'none',
-                            padding: '10px 20px',
-                            borderRadius: '5px',
-                            cursor: 'pointer',
-                            marginTop: '10px',
-                            fontFamily: 'Noto Sans Thai, sans-serif'
-                        }}
-                    >
-                        Close
-                    </button>
-                </div>
-            </form>
-        </Modal >
+                            <div className={styles.imagePreview}>
+                                {isDataLoading ? (
+                                    <div className={styles.loading}>
+                                        <SyncLoader color={"#123abc"} className={styles.loadingimage} />
+                                    </div>
+                                ) : (
+                                    (formData.image ? (
+                                        <img
+                                            src={URL.createObjectURL(formData.image)}
+                                            alt="selected"
+                                            className={styles.imgselected}
+                                        />
+                                    ) : itemData?.data?.attributes?.img?.data?.attributes?.url ? (
+                                        <img
+                                            src={`http://localhost:1337${itemData.data.attributes.img.data.attributes.url}`}
+                                            alt="default"
+                                            className={styles.imgselected}
+                                        />
+                                    ) : (
+                                        <div>No image available</div>
+                                    ))
+                                )}
+                            </div>
+                        </label>
+                    </div>
+                    <div>
+                        <label>
+                            Title:
+                            {itemData && (
+                                <input
+                                    type="text"
+                                    name="title"
+                                    value={formData.title || itemData.data.attributes.title} // add value attribute
+                                    onChange={handleInputChange} // add onChange handler
+                                />
+                            )}
+                        </label>
+                    </div>
+                    <div>
+                        <label>
+                            Description:
+                            {itemData && (
+                                <textarea
+                                    name="description"
+                                    value={
+                                        formData.description ||
+                                        itemData.data.attributes.description
+                                    } // add value attribute
+                                    onChange={handleInputChange} // add onChange handler
+                                />
+                            )}
+                        </label>
+                    </div>
+                    <div>
+                        <button
+                            type="submit"
+                            onMouseEnter={() => setHovered(true)}
+                            onMouseLeave={() => setHovered(false)}
+                        >
+                            Save Changes
+                        </button>
+                        <button type="button" onClick={onClose}>
+                            Close
+                        </button>
+                    </div>
+                </form>
+            </>
+        </Modal>
     );
 }
 

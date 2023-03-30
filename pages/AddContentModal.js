@@ -82,27 +82,10 @@ const AddContentModal = ({ isOpen, onClose, onSubmit }) => {
             throw new Error(error);
         }
     }
-
-
-
-
-
-
     function handleSubmit(event) {
         event.preventDefault();
         uploadEntry(formData);
     }
-
-
-
-
-
-
-
-
-
-
-
 
     return (
         <Modal
