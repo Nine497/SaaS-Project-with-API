@@ -12,6 +12,7 @@ import { SnackbarProvider } from 'notistack';
 import { Button } from '@mui/material';
 import CreateDataModal from '../pages/AddContentModal'
 import EditContentModal from '../pages/EditContentModal'
+import DeleteContentModal from '../pages/DeleteContentModal'
 import Modal from 'react-modal';
 import styles from '../styles/LoginModal.module.css';
 import { useRouter } from 'next/router';
@@ -91,6 +92,7 @@ function App() {
     const router = useRouter();
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [selectedItemId, setSelectedItemId] = useState(null);
 
     const openCreateModal = () => {
@@ -102,10 +104,16 @@ function App() {
         setIsEditModalOpen(true);
     };
 
+    const openDeleteModal = (itemId) => {
+        setSelectedItemId(itemId);
+        setIsDeleteModalOpen(true);
+    };
+
     const handleCloseModals = () => {
         setSelectedItemId(null);
         setIsCreateModalOpen(false);
         setIsEditModalOpen(false);
+        setIsDeleteModalOpen(false);
     };
 
 
@@ -172,9 +180,9 @@ function App() {
                                             <StyledTableCell>
                                                 <StyledTableCells>
                                                     <EditButton onClick={() => openEditModal(item.id)}>Edit</EditButton>
-                                                    <DeleteButton>Delete</DeleteButton>
-                                                </StyledTableCells>
+                                                    <DeleteButton onClick={() => openDeleteModal(item.id)}>Delete</DeleteButton>                                                </StyledTableCells>
                                                 <EditContentModal isOpen={isEditModalOpen} onClose={handleCloseModals} itemId={selectedItemId} />
+                                                <DeleteContentModal isOpen={isDeleteModalOpen} onClose={handleCloseModals} itemId={selectedItemId} />
                                             </StyledTableCell>
                                         </StyledTableRow>
                                     ))}

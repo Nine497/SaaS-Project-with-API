@@ -1,5 +1,5 @@
 import Modal from 'react-modal';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import styles from '../styles/EditContentModal.module.css';
 import Strapi from 'strapi-sdk-javascript';
@@ -142,46 +142,47 @@ const EditContentModal = ({ isOpen, onClose, onSubmit, itemId }) => {
 
 
 
-    const [hasFetchedItemData, setHasFetchedItemData] = useState(false);
+    const hasFetchedItemDataRef = useRef(false);
 
     const fetchItemData = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.get(`http://localhost:1337/api/apps/${itemId}?populate=*`, {
+            const response = await fetch(`http://localhost:1337/api/apps/${itemId}?populate=*`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
             });
-            const data = response.data;
+            const data = await response.json();
             setItemData(data);
-            setHasFetchedItemData(true);
+            hasFetchedItemDataRef.current = true;
+            console.log(data);
+            if (data) {
+                setIsDataLoading(false);
+                return; // exit function if data is truthy
+            }
         } catch (error) {
             console.error(error);
-        } finally {
-            setTimeout(() => {
-                setIsDataLoading(false);
-            }, 500);
         }
     };
 
 
-
     useEffect(() => {
-        if (isOpen && itemId && !hasFetchedItemData) {
+        if (isOpen && itemId && !hasFetchedItemDataRef.current) {
             setIsDataLoading(true);
             fetchItemData();
         }
-    }, [isOpen, itemId, hasFetchedItemData]);
+    }, [isOpen, itemId]);
 
-
-    if (onClose && hasFetchedItemData) {
-        setHasFetchedItemData(false);
+    if (onClose && hasFetchedItemDataRef.current) {
+        hasFetchedItemDataRef.current = false;
         setFormData({
             title: '',
             description: '',
-            image: null // set image state to null when modal is closed
+            image: null
         });
     }
+
+
 
     if (!isOpen || !itemData) {
         return null;

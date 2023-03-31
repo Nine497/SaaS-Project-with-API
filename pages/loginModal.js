@@ -167,7 +167,7 @@ const LoginModal = ({ handleClose }) => {
                     <HashLoader color={"#36D7B7"} loading={isLoading} className={styles.spinnerStyles} size={60} />
                 </div>
             ) : (
-                isLoggedIn && localStorage.getItem("token") ? (
+                isLoggedIn && sessionStorage.getItem('session_username') && localStorage.getItem('token') ? (
                     <div className={styles.dropdown}>
                         <Select
                             options={[
