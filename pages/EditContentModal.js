@@ -4,12 +4,14 @@ import axios from 'axios';
 import styles from '../styles/EditContentModal.module.css';
 import Strapi from 'strapi-sdk-javascript';
 import { SyncLoader } from 'react-spinners';
+import { useSnackbar } from 'notistack';
 
 Modal.setAppElement('#__next');
 
-const EditContentModal = ({ isOpen, onClose, onSubmit, itemId }) => {
+const EditContentModal = ({ isOpen, onClose, onSubmit, itemId, onUpdated }) => {
     const [itemData, setItemData] = useState(null);
     const [isDataLoading, setIsDataLoading] = useState(true);
+    const { enqueueSnackbar } = useSnackbar();
     const [formData, setFormData] = useState({
         image: itemData?.image || '',
         title: itemData?.title || '',
@@ -132,9 +134,21 @@ const EditContentModal = ({ isOpen, onClose, onSubmit, itemId }) => {
                         },
                     });
                 }
+                onClose();
+                onUpdated();
+                enqueueSnackbar('แก้ไขข้อมูลสำเร็จ', {
+                    variant: 'success',
+                    style: { fontFamily: 'Lato, "Noto Sans Thai", sans-serif' },
+                    fontSize: '18px'
+                });
             }
         } catch (error) {
             console.error('Error:', error.message);
+            enqueueSnackbar(`เกิดข้อผิดพลาด : ${error.message}`, {
+                variant: 'error',
+                style: { fontFamily: 'Lato, "Noto Sans Thai", sans-serif' },
+                fontSize: '20px'
+            });
         }
     };
 
@@ -144,34 +158,35 @@ const EditContentModal = ({ isOpen, onClose, onSubmit, itemId }) => {
 
     const hasFetchedItemDataRef = useRef(false);
 
-    const fetchItemData = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:1337/api/apps/${itemId}?populate=*`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-            const data = await response.json();
-            setItemData(data);
-            hasFetchedItemDataRef.current = true;
-            console.log(data);
-            if (data) {
-                setIsDataLoading(false);
-                return; // exit function if data is truthy
-            }
-        } catch (error) {
-            console.error(error);
-        }
-    };
-
-
     useEffect(() => {
-        if (isOpen && itemId && !hasFetchedItemDataRef.current) {
+        const fetchData = async () => {
             setIsDataLoading(true);
-            fetchItemData();
+            try {
+                const token = localStorage.getItem("token");
+                const response = await fetch(
+                    `http://localhost:1337/api/apps/${itemId}?populate=*`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
+                );
+                const result = await response.json();
+                setItemData(result);
+                console.log(result);
+                setIsDataLoading(false);
+                return;
+            } catch (error) {
+                console.error(error);
+                setIsDataLoading(false);
+            }
+        };
+
+        if (isOpen && itemId) {
+            fetchData();
         }
     }, [isOpen, itemId]);
+
 
     if (onClose && hasFetchedItemDataRef.current) {
         hasFetchedItemDataRef.current = false;

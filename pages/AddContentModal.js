@@ -1,11 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import Modal from 'react-modal';
 import styles from '../styles/AddContentModal.module.css';
+import { useSnackbar } from 'notistack';
+import SyncLoader from "react-spinners/SyncLoader";
 
 Modal.setAppElement('#__next');
 
-const AddContentModal = ({ isOpen, onClose, onSubmit }) => {
+const AddContentModal = ({ isOpen, onClose, onSubmit, onCreated }) => {
     const [hovered, setHovered] = useState(false);
+    const { enqueueSnackbar } = useSnackbar();
+    const [creatingEntry, setCreatingEntry] = useState(false);
+    const [showSyncLoader, setShowSyncLoader] = useState(false);
+    const [buttonDisabled, setButtonDisabled] = useState(false);
+
+    function handleSubmit(event) {
+        event.preventDefault();
+        setButtonDisabled(true);
+        setCreatingEntry(true);
+        setShowSyncLoader(true);
+        uploadEntry(formData).finally(() => {
+            setCreatingEntry(false);
+            setShowSyncLoader(false);
+            setButtonDisabled(false);
+        });
+    }
+
     const handleMouseEnter = () => {
         setHovered(true);
     };
@@ -75,18 +94,38 @@ const AddContentModal = ({ isOpen, onClose, onSubmit }) => {
             const createResponse = await fetch(`${apiUrl}/apps`, createConfig);
             const createdEntry = await createResponse.json();
             console.log('Entry created:', createdEntry);
-            window.location.reload();
+            onClose();
+            onCreated();
+            enqueueSnackbar('เพิ่มข้อมูลสำเร็จ', {
+                variant: 'success',
+                style: { fontFamily: 'Lato, "Noto Sans Thai", sans-serif' },
+                fontSize: '20px'
+            });
+            const updatedFormData = {
+                ...formData,
+                image: null,
+                title: '',
+                description: '',
+            };
+            setFormData(updatedFormData);
             return createdEntry;
         } catch (error) {
             console.error('Error uploading file:', error);
+            enqueueSnackbar(`เกิดข้อผิดพลาดในการอัพโหลดไฟล์ : ${error}`, {
+                variant: 'error',
+                style: { fontFamily: 'Lato, "Noto Sans Thai", sans-serif' },
+                fontSize: '20px'
+            });
+            const updatedFormData = {
+                ...formData,
+                image: null,
+                title: '',
+                description: '',
+            };
+            setFormData(updatedFormData);
             throw new Error(error);
         }
     }
-    function handleSubmit(event) {
-        event.preventDefault();
-        uploadEntry(formData);
-    }
-
     return (
         <Modal
             isOpen={isOpen}
@@ -124,6 +163,7 @@ const AddContentModal = ({ isOpen, onClose, onSubmit }) => {
                     <label>
                         Title:
                         <input
+                            required
                             type="text"
                             name="title"
                             value={formData.title}
@@ -137,16 +177,20 @@ const AddContentModal = ({ isOpen, onClose, onSubmit }) => {
                         <textarea
                             name="description"
                             value={formData.description}
+                            required
                             onChange={handleInputChange} // add onChange handler
                         />
                     </label>
                 </div>
                 <button
                     type="submit"
+                    disabled={buttonDisabled}
                     onMouseEnter={handleMouseEnter}
                     onMouseLeave={handleMouseLeave}
+                    onClick={handleSubmit}
                 >
-                    Submit
+                    {creatingEntry ? "" : "Submit"}
+                    {showSyncLoader && <SyncLoader color="#ffffff" size={7} />}
                 </button>
                 <button
                     type="button"
@@ -155,7 +199,7 @@ const AddContentModal = ({ isOpen, onClose, onSubmit }) => {
                     Close
                 </button>
             </form>
-        </Modal>
+        </Modal >
     );
 }
 

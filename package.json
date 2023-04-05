@@ -25,6 +25,7 @@
     "react-router-dom": "^6.9.0",
     "react-select": "^5.7.0",
     "react-spinners": "^0.13.8",
+    "react-toastify": "^9.1.2",
     "strapi": "^3.6.11",
     "strapi-sdk-javascript": "^0.3.3"
   },

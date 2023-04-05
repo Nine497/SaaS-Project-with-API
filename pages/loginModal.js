@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styles from '../styles/LoginModal.module.css';
 import { GrClose } from 'react-icons/gr';
 import { BiLogIn } from 'react-icons/bi';
-import strapi, { login, getCurrentUser } from '../pages/api/Strapi';
+import strapi, { login, getCurrentUser } from '../pages/api/strapi';
 import { useSnackbar } from 'notistack';
 import ForgotPasswordForm from '../pages/ForgotPasswordForm';
 import { redirect } from 'react-router-dom';

@@ -12,7 +12,7 @@ import { SnackbarProvider } from 'notistack';
 import { Button } from '@mui/material';
 import CreateDataModal from '../pages/AddContentModal'
 import EditContentModal from '../pages/EditContentModal'
-import DeleteContentModal from '../pages/DeleteContentModal'
+import DeleteContent from '../pages/DeleteContentModal'
 import Modal from 'react-modal';
 import styles from '../styles/LoginModal.module.css';
 import { useRouter } from 'next/router';
@@ -94,6 +94,11 @@ function App() {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [selectedItemId, setSelectedItemId] = useState(null);
+    const [isDataLoading, setIsDataLoading] = useState(true);
+    const [itemTitle, setItemTitle] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filteredData, setFilteredData] = useState(data);
+    const [startDate, setStartDate] = useState(null);
 
     const openCreateModal = () => {
         setIsCreateModalOpen(true);
@@ -104,10 +109,29 @@ function App() {
         setIsEditModalOpen(true);
     };
 
-    const openDeleteModal = (itemId) => {
+    function handleContentChange() {
+        fetchData();
+    }
+
+
+    const openDeleteModal = async (itemId) => {
         setSelectedItemId(itemId);
-        setIsDeleteModalOpen(true);
+        setIsDataLoading(true);
+        try {
+            const response = await fetch(`http://localhost:1337/api/apps/${itemId}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch item title');
+            }
+            const dataTitle = await response.json();
+            console.log(dataTitle);
+            setIsDeleteModalOpen(true);
+            setItemTitle(dataTitle.data.attributes.title);
+            setIsDataLoading(false);
+        } catch (error) {
+            console.error(error);
+        }
     };
+
 
     const handleCloseModals = () => {
         setSelectedItemId(null);
@@ -116,28 +140,40 @@ function App() {
         setIsDeleteModalOpen(false);
     };
 
+    const fetchData = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get('http://localhost:1337/api/apps?populate=*', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (Array.isArray(response.data.data)) {
+                setData(response.data.data);
+                setFilteredData(response.data.data);
+                console.log('response data:', data);
+            } else {
+                console.log('Invalid response data:', response.data);
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    };
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        const fetchData = async () => {
-            try {
-                const response = await axios.get('http://localhost:1337/api/apps?populate=*', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                if (Array.isArray(response.data.data)) {
-                    setData(response.data.data);
-                    console.log('response data:', data);
-                } else {
-                    console.log('Invalid response data:', response.data);
-                }
-            } catch (error) {
-                console.log(error);
-            }
-        };
         fetchData();
     }, []);
+
+    const handleSearchChange = (event) => {
+        const searchValue = event.target.value;
+        setSearchTerm(searchValue);
+        const filteredItems = searchValue === '' ? data : data.filter((item) =>
+            item.id.toString().toLowerCase().includes(searchValue.toLowerCase()) ||
+            item.attributes.title.toLowerCase().includes(searchValue.toLowerCase()) ||
+            item.attributes.description.toLowerCase().includes(searchValue.toLowerCase())
+        );
+        setFilteredData(filteredItems);
+    };
 
     return (
         <>
@@ -146,8 +182,26 @@ function App() {
                     <LoginModal />
                     <h1 className={styles.Textheader}>ข้อมูลทั้งหมด</h1>
                     <button className={styles.AddBtn} onClick={openCreateModal}>Add content + </button>
-                    <CreateDataModal isOpen={isCreateModalOpen} onClose={() => handleCloseModals(false)} />
+                    <CreateDataModal isOpen={isCreateModalOpen} onClose={() => handleCloseModals(false)} onCreated={handleContentChange} />
                     <div className={styles.TablePosition}>
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                            <input
+                                type="text"
+                                value={searchTerm}
+                                onChange={handleSearchChange}
+                                placeholder="ค้นหา"
+                                style={{
+                                    padding: '8px 12px',
+                                    border: '1px solid #ccc',
+                                    borderRadius: '4px',
+                                    boxShadow: 'none',
+                                    fontSize: '16px',
+                                    width: '300px',
+                                    marginRight: '10px',
+                                    fontFamily: 'Noto Sans Thai, sans-serif',
+                                }}
+                            />
+                        </div>
                         <TableContainer component={Paper}>
                             <Table sx={{ minWidth: 300 }} aria-label="customized table">
                                 <TableHead>
@@ -163,7 +217,7 @@ function App() {
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {data.map((item) => (
+                                    {filteredData.map((item) => (
                                         <StyledTableRow key={item.id}>
                                             <StyledTableCell>{item.id}</StyledTableCell>
                                             <StyledTableCell>
@@ -174,15 +228,29 @@ function App() {
                                             <StyledTableCell style={{ maxWidth: '300px', wordWrap: 'break-word' }}>
                                                 {item.attributes.description}
                                             </StyledTableCell>
-                                            <StyledTableCell>{new Date(item.attributes.createdAt).toLocaleDateString()}</StyledTableCell>
-                                            <StyledTableCell>{new Date(item.attributes.updatedAt).toLocaleDateString()}</StyledTableCell>
-                                            <StyledTableCell>{new Date(item.attributes.publishedAt).toLocaleDateString()}</StyledTableCell>
+                                            <StyledTableCell>{new Date(item.attributes.createdAt).toLocaleDateString('en-GB', {
+                                                day: '2-digit',
+                                                month: '2-digit',
+                                                year: 'numeric'
+                                            })}</StyledTableCell>
+                                            <StyledTableCell>{new Date(item.attributes.updatedAt).toLocaleDateString('en-GB', {
+                                                day: '2-digit',
+                                                month: '2-digit',
+                                                year: 'numeric'
+                                            })}</StyledTableCell>
+                                            <StyledTableCell>{new Date(item.attributes.publishedAt).toLocaleDateString('en-GB', {
+                                                day: '2-digit',
+                                                month: '2-digit',
+                                                year: 'numeric'
+                                            })}</StyledTableCell>
+
                                             <StyledTableCell>
                                                 <StyledTableCells>
                                                     <EditButton onClick={() => openEditModal(item.id)}>Edit</EditButton>
-                                                    <DeleteButton onClick={() => openDeleteModal(item.id)}>Delete</DeleteButton>                                                </StyledTableCells>
-                                                <EditContentModal isOpen={isEditModalOpen} onClose={handleCloseModals} itemId={selectedItemId} />
-                                                <DeleteContentModal isOpen={isDeleteModalOpen} onClose={handleCloseModals} itemId={selectedItemId} />
+                                                    <DeleteButton onClick={() => openDeleteModal(item.id)}>Delete</DeleteButton>
+                                                </StyledTableCells>
+                                                <EditContentModal isOpen={isEditModalOpen} onClose={handleCloseModals} itemId={selectedItemId} onUpdated={handleContentChange} />
+                                                <DeleteContent isOpen={isDeleteModalOpen} onClose={handleCloseModals} itemId={selectedItemId} itemTitle={itemTitle} onDeleted={handleContentChange} />
                                             </StyledTableCell>
                                         </StyledTableRow>
                                     ))}
