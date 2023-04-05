@@ -40,10 +40,9 @@ const LoginModal = ({ handleClose }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            setIsLoading(true);
             const response = await login(username, password);
             const token = response.jwt;
-
+            setIsLoading(true);
             localStorage.setItem('token', token);
             setIsLoggedIn(true);
             setModalIsOpen(false);
