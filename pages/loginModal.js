@@ -2,14 +2,12 @@ import React, { useState, useEffect } from 'react';
 import styles from '../styles/LoginModal.module.css';
 import { GrClose } from 'react-icons/gr';
 import { BiLogIn } from 'react-icons/bi';
-import strapi, { login, getCurrentUser } from '../pages/api/strapi';
+import { login, getCurrentUser } from '../pages/api/strapi';
 import { useSnackbar } from 'notistack';
 import ForgotPasswordForm from '../pages/ForgotPasswordForm';
-import { redirect } from 'react-router-dom';
 import Select from 'react-select';
 import { GrUserAdmin } from 'react-icons/gr';
 import { useRouter } from 'next/router';
-import { css } from '@emotion/react';
 import { HashLoader } from 'react-spinners';
 
 const LoginModal = ({ handleClose }) => {
@@ -149,14 +147,15 @@ const LoginModal = ({ handleClose }) => {
         }, 2000);
         if (isOpen || forgotPasswordOpen) {
             document.body.style.overflow = 'hidden';
+        } else if (isLoading) {
+            document.body.style.overflow = 'hidden';
         } else {
             document.body.style.overflow = 'visible';
         }
         return () => {
             document.body.style.overflow = 'visible';
         };
-        return () => clearTimeout(delay);
-    }, [isOpen, forgotPasswordOpen]);
+    }, [isOpen, forgotPasswordOpen, isLoading]);
 
 
     return (

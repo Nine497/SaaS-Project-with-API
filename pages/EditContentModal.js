@@ -1,6 +1,5 @@
 import Modal from 'react-modal';
 import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
 import styles from '../styles/EditContentModal.module.css';
 import Strapi from 'strapi-sdk-javascript';
 import { SyncLoader } from 'react-spinners';

@@ -1,7 +1,6 @@
 import Modal from 'react-modal';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
-import Strapi from 'strapi-sdk-javascript';
 import { SyncLoader } from 'react-spinners';
 import styles from '../styles/DeleteContent.module.css';
 import { useSnackbar } from 'notistack';
