@@ -2,7 +2,7 @@ import Head from 'next/head'
 import styles from '@/styles/Home.module.css'
 import { FcAbout } from "react-icons/fc";
 import SaaSDisplay from '../pages/api/SaaS';
-import Footer from './Footer'
+import Footer from '../pages/footer'
 import LoginModal from '../pages/loginModal';
 import { SnackbarProvider } from 'notistack';
 
@@ -24,7 +24,7 @@ export default function Home() {
               <a className={styles.h2} >คณะวิศวกรรมศาสตร์ ม.อ. ก้าวสู่ยุคของการ</a><br />
               <a className={styles.h2} >พัฒนาซอฟต์แวร์ อย่างไร้ขีดจำกัด</a>
             </div>
-            <a className={styles.aboutbtn} href='#about-me' onClick={scrollToAbout}>About</a>
+            <a className={styles.aboutbtn} onClick={scrollToAbout}>About</a>
           </section>
           <section className={styles.Section2}>
             <div className={styles.Diagonal1}></div>

@@ -9,14 +9,15 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import { SnackbarProvider } from 'notistack';
+import { useSnackbar } from 'notistack';
 import { Button } from '@mui/material';
 import CreateDataModal from '../pages/AddContentModal'
 import EditContentModal from '../pages/EditContentModal'
-import DeleteContent from '../pages/DeleteContentModal'
 import Modal from 'react-modal';
 import styles from '../styles/LoginModal.module.css';
 import { useRouter } from 'next/router';
 import LoginModal from '../pages/loginModal';
+import Swal from 'sweetalert2';
 
 Modal.setAppElement('#__next');
 
@@ -89,16 +90,12 @@ const DeleteButton = styled(StyledButton)(({ theme }) => ({
 
 function App() {
     const [data, setData] = useState([]);
-    const router = useRouter();
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [selectedItemId, setSelectedItemId] = useState(null);
-    const [isDataLoading, setIsDataLoading] = useState(true);
-    const [itemTitle, setItemTitle] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredData, setFilteredData] = useState(data);
-    const [startDate, setStartDate] = useState(null);
+    const { enqueueSnackbar } = useSnackbar();
 
     const openCreateModal = () => {
         setIsCreateModalOpen(true);
@@ -113,32 +110,54 @@ function App() {
         fetchData();
     }
 
-
-    const openDeleteModal = async (itemId) => {
-        setSelectedItemId(itemId);
-        setIsDataLoading(true);
-        try {
-            const response = await fetch(`http://localhost:1337/api/apps/${itemId}`);
-            if (!response.ok) {
-                throw new Error('Failed to fetch item title');
-            }
-            const dataTitle = await response.json();
-            console.log(dataTitle);
-            setIsDeleteModalOpen(true);
-            setItemTitle(dataTitle.data.attributes.title);
-            setIsDataLoading(false);
-        } catch (error) {
-            console.error(error);
-        }
-    };
-
-
     const handleCloseModals = () => {
         setSelectedItemId(null);
         setIsCreateModalOpen(false);
         setIsEditModalOpen(false);
-        setIsDeleteModalOpen(false);
     };
+
+    const handleConfirmDelete = (itemId) => {
+        Swal.fire({
+            title: 'ยืนยันการลบ',
+            text: `คุณแน่ใจหรือว่าต้องการลบ id : ${itemId} ?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'ยืนยัน',
+            confirmButtonColor: '#dc3545',
+            cancelButtonText: 'ยกเลิก',
+            cancelButtonColor: '#0074d9',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                deleteItem(itemId);
+            }
+        });
+    };
+
+    const deleteItem = async (itemId) => {
+        try {
+            const token = localStorage.getItem('token');
+            const config = {
+                headers: { Authorization: `Bearer ${token}` }
+            };
+            const response = await axios.delete(`http://localhost:1337/api/apps/${itemId}`, config);
+            handleContentChange();
+            if (response) {
+                enqueueSnackbar('ลบข้อมูลสำเร็จ', {
+                    variant: 'success',
+                    style: { fontFamily: 'Lato, "Noto Sans Thai", sans-serif' },
+                    fontSize: '20px'
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            enqueueSnackbar(`เกิดข้อผิดพลาด : ${error}`, {
+                variant: 'error',
+                style: { fontFamily: 'Lato, "Noto Sans Thai", sans-serif' },
+                fontSize: '20px'
+            });
+        }
+    };
+
 
     const fetchData = async () => {
         try {
@@ -247,10 +266,8 @@ function App() {
                                             <StyledTableCell>
                                                 <StyledTableCells>
                                                     <EditButton onClick={() => openEditModal(item.id)}>Edit</EditButton>
-                                                    <DeleteButton onClick={() => openDeleteModal(item.id)}>Delete</DeleteButton>
-                                                </StyledTableCells>
+                                                    <DeleteButton onClick={() => handleConfirmDelete(item.id)}>Delete</DeleteButton>                                                </StyledTableCells>
                                                 <EditContentModal isOpen={isEditModalOpen} onClose={handleCloseModals} itemId={selectedItemId} onUpdated={handleContentChange} />
-                                                <DeleteContent isOpen={isDeleteModalOpen} onClose={handleCloseModals} itemId={selectedItemId} itemTitle={itemTitle} onDeleted={handleContentChange} />
                                             </StyledTableCell>
                                         </StyledTableRow>
                                     ))}

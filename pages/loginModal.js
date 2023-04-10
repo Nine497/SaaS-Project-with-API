@@ -142,9 +142,6 @@ const LoginModal = ({ handleClose }) => {
     }
 
     useEffect(() => {
-        const delay = setTimeout(() => {
-            setIsLoading(false);
-        }, 2000);
         if (isOpen || forgotPasswordOpen) {
             document.body.style.overflow = 'hidden';
         } else if (isLoading) {
@@ -204,11 +201,11 @@ const LoginModal = ({ handleClose }) => {
                             {error && <p className={styles.error}>{error}</p>}
                             <label>
                                 E-mail :
-                                <input type="email" className={styles.inputField} value={username} onChange={(e) => setUsername(e.target.value)} />
+                                <input type="email" className={styles.inputField} value={username} onChange={(e) => setUsername(e.target.value)} placeholder='Enter Your e-mail' />
                             </label>
                             <label>
                                 Password :
-                                <input type="password" className={styles.inputField} value={password} onChange={(e) => setPassword(e.target.value)} />
+                                <input type="password" className={styles.inputField} value={password} onChange={(e) => setPassword(e.target.value)} placeholder='Enter Your Password' />
                             </label>
                             <button type="submit" className={styles.submitBtn}>ยืนยัน</button>
                             <button className={styles.closeBtn} onClick={handleCloseModal}>
