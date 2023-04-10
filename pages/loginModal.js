@@ -80,16 +80,17 @@ const LoginModal = ({ handleClose }) => {
 
     function handleEdit() {
         setIsLoading(true);
-        location.href = '/edit_content';
-        location.onload = () => setIsLoading(false);
+        window.addEventListener('beforeunload', () => setIsLoading(true));
+        window.location.href = '/edit_content';
+        window.onload = () => setIsLoading(false);
     }
 
 
     function handleIndex() {
         setIsLoading(true);
-        router.push('/').then(() => {
-            setIsLoading(false);
-        });
+        window.addEventListener('beforeunload', () => setIsLoading(true));
+        window.location.href = '/';
+        window.onload = () => setIsLoading(false);
     }
 
     function handleLogout() {

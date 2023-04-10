@@ -249,7 +249,7 @@ const EditContentModal = ({ isOpen, onClose, onSubmit, itemId, onUpdated }) => {
                         <label>
                             Title:
                             {isDataLoading ? (
-                                <PulseLoader color={"#123abc"} size={8} margin={4} />
+                                <PulseLoader color={"#123abc"} size={8} margin={4} className={styles.loadingText} />
                             ) : (
                                 itemData && (
                                     <input
@@ -266,7 +266,7 @@ const EditContentModal = ({ isOpen, onClose, onSubmit, itemId, onUpdated }) => {
                         <label>
                             Description:
                             {isDataLoading ? (
-                                <PulseLoader color={"#123abc"} size={8} margin={4} />
+                                <PulseLoader color={"#123abc"} size={8} margin={4} className={styles.loadingText} />
                             ) : (
                                 itemData && (
                                     <textarea
