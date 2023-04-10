@@ -80,17 +80,12 @@ const LoginModal = ({ handleClose }) => {
 
     function handleEdit() {
         setIsLoading(true);
-        window.addEventListener('beforeunload', () => setIsLoading(true));
-        window.location.href = '/edit_content';
-        window.onload = () => setIsLoading(false);
+        window.location.href = "/edit_content";
     }
-
 
     function handleIndex() {
         setIsLoading(true);
-        window.addEventListener('beforeunload', () => setIsLoading(true));
-        window.location.href = '/';
-        window.onload = () => setIsLoading(false);
+        window.location.href = "/";
     }
 
     function handleLogout() {
@@ -158,6 +153,12 @@ const LoginModal = ({ handleClose }) => {
         };
     }, [isOpen, forgotPasswordOpen, isLoading]);
 
+    useEffect(() => {
+        setIsLoading(true);
+        window.addEventListener("load", () => {
+            setIsLoading(false);
+        });
+    }, []);
 
     return (
         <div className={styles.font}>
