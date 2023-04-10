@@ -3,6 +3,7 @@ import { useSnackbar } from 'notistack';
 import axios from 'axios';
 import styles from '../styles/ForgotPasswordForm.module.css';
 import { BiArrowBack } from 'react-icons/bi';
+import { HashLoader } from 'react-spinners';
 
 const ForgotPasswordForm = ({ handleClose, handleBackClick, forgotPasswordOpen, isOpen }) => {
     const [email, setEmail] = useState('');

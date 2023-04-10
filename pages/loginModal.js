@@ -80,10 +80,10 @@ const LoginModal = ({ handleClose }) => {
 
     function handleEdit() {
         setIsLoading(true);
-        router.push('/edit_content').then(() => {
-            setIsLoading(false);
-        });
+        location.href = '/edit_content';
+        location.onload = () => setIsLoading(false);
     }
+
 
     function handleIndex() {
         setIsLoading(true);
@@ -142,6 +142,9 @@ const LoginModal = ({ handleClose }) => {
     }
 
     useEffect(() => {
+        const delay = setTimeout(() => {
+            setIsLoading(false);
+        }, 2000);
         if (isOpen || forgotPasswordOpen) {
             document.body.style.overflow = 'hidden';
         } else if (isLoading) {

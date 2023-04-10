@@ -266,7 +266,8 @@ function App() {
                                             <StyledTableCell>
                                                 <StyledTableCells>
                                                     <EditButton onClick={() => openEditModal(item.id)}>Edit</EditButton>
-                                                    <DeleteButton onClick={() => handleConfirmDelete(item.id)}>Delete</DeleteButton>                                                </StyledTableCells>
+                                                    <DeleteButton onClick={() => handleConfirmDelete(item.id)}>Delete</DeleteButton>
+                                                </StyledTableCells>
                                                 <EditContentModal isOpen={isEditModalOpen} onClose={handleCloseModals} itemId={selectedItemId} onUpdated={handleContentChange} />
                                             </StyledTableCell>
                                         </StyledTableRow>
