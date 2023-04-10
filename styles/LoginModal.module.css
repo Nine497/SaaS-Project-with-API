@@ -344,41 +344,26 @@
     left: 0;
 }
 
-;
-
 .spinnerStyles {
     margin: auto;
     width: 100px;
     height: 100px;
 }
 
-;
 
+@media screen and (max-width: 480px) {
+    .loginBtn {
+        font-size: 15px;
+        top: -5px;
+        right: 0px;
+    }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-@media (max-width: 768px) {
     .modal {
         width: 80%;
         max-height: 90%;
+        position: fixed;
+        top: 7rem;
+        transform: translate(-50%, -50%);
     }
 
     .modal .closeBtn {
@@ -386,11 +371,17 @@
     }
 
     .dropdown {
-        position: relative;
-        top: auto;
-        right: auto;
-        width: 100%;
-        height: auto;
-        margin: 10px 0;
+        position: absolute;
+        top: -5px;
+        right: 0px;
+        width: auto;
+        height: 5%;
+        cursor: pointer;
+        border: 0;
+        border-radius: 4px;
+        font-weight: 600;
+        margin: 30px 30px;
+        padding: 5px 5px;
+        font-size: 13px;
     }
 }
