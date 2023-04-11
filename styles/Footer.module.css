@@ -54,6 +54,7 @@
     padding: 5px 10px;
     position: relative;
 }
+
 .footera:hover {
     color: black;
 }
@@ -112,5 +113,14 @@
     .footera {
         font-size: 14px;
         padding: 5px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .footerText{
+        font-size: 15px;
+    }
+    .footera{
+        font-size: 11px;
     }
 }
