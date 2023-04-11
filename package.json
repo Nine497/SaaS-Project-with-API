@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@emotion/styled": "^11.10.6",
-    "@material-ui/core": "^5.11.3",
     "@mui/material": "^5.11.13",
     "@nextui-org/react": "^1.0.0-beta.12",
     "@strapi/database": "^4.8.2",
