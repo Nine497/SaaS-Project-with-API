@@ -80,12 +80,16 @@ const LoginModal = ({ handleClose }) => {
 
     function handleEdit() {
         setIsLoading(true);
-        window.location.href = "/edit_content";
+        router.push('/edit_content').then(() => {
+            setIsLoading(false);
+        });
     }
 
     function handleIndex() {
         setIsLoading(true);
-        window.location.href = "/";
+        router.push('/').then(() => {
+            setIsLoading(false);
+        });
     }
 
     function handleLogout() {
@@ -152,13 +156,6 @@ const LoginModal = ({ handleClose }) => {
             document.body.style.overflow = 'visible';
         };
     }, [isOpen, forgotPasswordOpen, isLoading]);
-
-    useEffect(() => {
-        setIsLoading(true);
-        window.addEventListener("load", () => {
-            setIsLoading(false);
-        });
-    }, []);
 
     return (
         <div className={styles.font}>

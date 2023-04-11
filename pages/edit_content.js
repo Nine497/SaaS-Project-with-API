@@ -140,20 +140,34 @@ function App() {
                 headers: { Authorization: `Bearer ${token}` }
             };
             const response = await axios.delete(`http://localhost:1337/api/apps/${itemId}`, config);
+            console.log(response.status);
+            Swal.fire({
+                title: 'ลบข้อมูลสำเร็จ',
+                icon: 'success',
+                confirmButtonText: 'ตกลง',
+                timer: 6000,
+                timerProgressBar: true,
+                showClass: {
+                    popup: 'animate__animated animate__fadeInDown'
+                },
+                hideClass: {
+                    popup: 'animate__animated animate__fadeOutUp'
+                }
+            });
             handleContentChange();
-            if (response) {
-                enqueueSnackbar('ลบข้อมูลสำเร็จ', {
-                    variant: 'success',
-                    style: { fontFamily: 'Lato, "Noto Sans Thai", sans-serif' },
-                    fontSize: '20px'
-                });
-            }
         } catch (error) {
             console.error(error);
-            enqueueSnackbar(`เกิดข้อผิดพลาด : ${error}`, {
-                variant: 'error',
-                style: { fontFamily: 'Lato, "Noto Sans Thai", sans-serif' },
-                fontSize: '20px'
+            Swal.fire({
+                title: 'เกิดข้อผิดพลาด',
+                text: error,
+                icon: 'error',
+                confirmButtonText: 'ตกลง',
+                showClass: {
+                    popup: 'animate__animated animate__fadeInDown'
+                },
+                hideClass: {
+                    popup: 'animate__animated animate__fadeOutUp'
+                }
             });
         }
     };
@@ -170,7 +184,6 @@ function App() {
             if (Array.isArray(response.data.data)) {
                 setData(response.data.data);
                 setFilteredData(response.data.data);
-                console.log('response data:', data);
             } else {
                 console.log('Invalid response data:', response.data);
             }
