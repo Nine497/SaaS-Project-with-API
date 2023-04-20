@@ -15,7 +15,6 @@ import CreateDataModal from '../pages/AddContentModal'
 import EditContentModal from '../pages/EditContentModal'
 import Modal from 'react-modal';
 import styles from '../styles/LoginModal.module.css';
-import { useRouter } from 'next/router';
 import LoginModal from '../pages/loginModal';
 import Swal from 'sweetalert2';
 
@@ -275,7 +274,6 @@ function App() {
                                                 month: '2-digit',
                                                 year: 'numeric'
                                             })}</StyledTableCell>
-
                                             <StyledTableCell>
                                                 <StyledTableCells>
                                                     <EditButton onClick={() => openEditModal(item.id)}>Edit</EditButton>
